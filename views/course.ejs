@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/css/main.css" rel="stylesheet" type="text/css">
+    <link href="/css/table.css" rel="stylesheet" type="text/css">
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <title>Course</title>
+</head>
+
+<body>
+    <header class="navbar">
+        <h1> Tus cursos</h1>
+    </header>
+
+
+    <a href="/" class="back-button">Añadir un curso</a>
+
+    <main class="main_grid">
+
+        <div class="main_grid_wrapper">
+
+
+            <% courses.forEach(course=> { %>
+                <div class="main_grid__table">
+                    <div class="main_grid__table--title">
+                        <%= course[0] %>
+                    </div>
+                    <div><a href="<%= course[1] %>" class="course-link" data-id="<%= course[1] %>">
+                            <%= course[1] %>
+                        </a></div>
+                    <div>
+                        <%= course[2] %>
+                    </div>
+                    <div class="main_grid__table--title text_limit_space">
+                        <%= course[3] ? course[3] : '' %>
+                    </div>
+                </div>
+                <% }) %>
+        </div>
+    </main>
+
+    <section class="main_video_player">
+        <div id="player"></div>
+
+
+    </section>
+
+    <button id="jumpButton">Saltar 1 Minuto</button>
+
+
+    <div class="main_notes" id="notesForm">
+        <% courses.forEach(course=> { %>
+            <div class="note" data-id="<%= course[5] %>">
+                <label for="note_<%= course[5] %>" hidden></label>
+                <textarea class="text_note" name="note_<%= course[5] %>" id="noteText"
+                    required><%= course[4] %></textarea>
+                <label for="id_<%= course[5] %>" hidden></label>
+                <input id="id_note" class="id_note_container" name="id_<%= course[5] %>" data-id="<%= course[5] %>"
+                    value="<%= course[5] %>" type="hidden">
+
+            </div>
+            <% }) %>
+
+                <form action="/route" method="POST">
+                    <input type="text" id="id_value" name="id_value">
+                    <input type="text" id="note_value" name="note_value">
+                    <button type="submit" class="btn"> guardar</button>
+
+                </form>
+
+
+    </div>
+
+
+
+
+    <script>
+
+
+
+        var tag = document.createElement('script');
+
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // 3. This function creates an <iframe> (and YouTube player)
+        //    after the API code downloads.
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '390',
+                width: '640',
+                videoId: 'T7uaEZ3ZoZE',
+                playerVars: {
+                    'playsinline': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        // 4. The API will call this function when the video player is ready.
+        function onPlayerReady(event) {
+            event.target.playVideo();
+        }
+
+        // 5. The API calls this function when the player's state changes.
+        //    The function indicates that when playing a video (state=1),
+        //    the player should play for six seconds and then stop.
+        var done = false;
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING && !done) {
+                setTimeout(stopVideo, 6000);
+                done = true;
+            }
+        }
+        function stopVideo() {
+            player.stopVideo();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            let jumpButton = document.getElementById("jumpButton");
+
+            const form = document.getElementById('form');
+
+            let idValueToSend = document.getElementById("id_value").value
+            let noteValueToSend = document.getElementById("note_value").value
+
+            let idNote = document.querySelector("#id_note").value
+            let noteValue = document.getElementById("noteText").value
+            let defaultVideoId = "1"; // Adjust this according to your default video ID
+            let selectedVideoIdInput = document.querySelector("#selectedVideoId");
+
+            let allIdNotes = document.querySelectorAll(".id_note_container")
+
+            let mainVideoPlayer = document.querySelector("#player");
+            let courseLinks = document.querySelectorAll(".course-link");
+            let courseContainers = document.querySelectorAll(".main_grid__table");
+            let regexForVideo = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/;
+
+
+
+            jumpButton.addEventListener('click', () => {
+                // Obtener el tiempo actual del video en segundos
+                let currentTime = player.getCurrentTime();
+
+                // Convertir el tiempo a minutos y añadir 60 segundos
+                let newTime = currentTime + 60;
+
+                // Saltar al nuevo tiempo en el video
+                player.seekTo(newTime);
+            });
+            // Click event for changing the video and notes
+            courseLinks.forEach(link => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault(); // Prevent default navigation
+                    let newSrc = link.href.replace("watch?v=", "embed/");
+
+                    // Get the video ID from the clicked link
+                    let videoId = link.getAttribute('data-id');
+                    // console.log("This is video id ==>  " + videoId)
+                    defaultVideoId = videoId
+                    console.log("carga de video  " + videoId)
+                    let match = videoId.match(regexForVideo)
+                    let videoIdMatch = match[1];
+                    console.log("carga de video  " + videoIdMatch)
+
+
+                    player.loadVideoById(videoIdMatch)
+                    // console.log(videoId)
+                    console.log(`id video ${videoId}, Texto del video ${noteValue}`)
+
+                    // noteValueToSend= 
+
+
+                    // Show only the notes corresponding to the selected video
+                    document.querySelectorAll('.note').forEach(note => {
+                        if (note.getAttribute('data-id') === videoId) {
+                            note.style.display = 'block';
+
+                            // let textarea = note.querySelector('.text_note');
+                            // if (textarea) {
+                            //     noteValue = ; // Set the new content here
+                            // }
+                        } else {
+                            note.style.display = 'none';
+                        }
+                    });
+
+
+                    document.querySelectorAll('.text_note').forEach(textarea => {
+                        textarea.addEventListener('input', (event) => {
+                            // Get the ID associated with this textarea
+                            let noteId = textArea.getAttribute('name').split('_')[1]; // Extract the ID from the name attribute
+                            let noteText = textArea.value;
+
+                            // Update the hidden input values
+                            idValueInput.value = noteId;
+                            noteValueInput.value = noteValueToSend;
+                        });
+                    });
+
+
+
+                });
+            });
+
+            // Adjust margin-left dynamically for each course container
+            courseContainers.forEach((container, index) => {
+                container.style.marginLeft = `${index * 270}px`; // Adjust the multiplier as needed
+            });
+
+            // Initially hide all notes except for the default video
+            document.querySelectorAll('.note').forEach(note => {
+                if (note.getAttribute('data-id') !== defaultVideoId) {
+                    note.style.display = 'none';
+                }
+            });
+            idValueToSend = videoId
+
+        });
+
+
+    </script>
+
+
+</body>
+
+</html>
